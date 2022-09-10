@@ -1,0 +1,14 @@
+Cloud Arch --> FrontEnd         &&          BackEnd
+        IoT, Mobiles, Software...        Servers, Apps, Services
+
+Cloud Models -->    Pub Cloud       --> Ex Google Drive
+            &&      Private Cloud   --> Reserved to Companies     
+            &&      Community Cloud --> Related to some areas of expertises
+
+
+Services Model ==>  Infrastructure as Services
+            &&      Platform as Services
+            &&      Software as Services
+
+Gartner Cloud estimation => usage of Cloud += 30% per year
+    companies are moving to Cloud
