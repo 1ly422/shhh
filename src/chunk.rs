@@ -1,9 +1,6 @@
 use std::{
     fmt::Display, 
-    convert::{
-        TryFrom, 
-        TryInto
-    }
+    convert::TryFrom
 };
 
 use crate::Error;
@@ -15,6 +12,14 @@ use crc::{Crc, CRC_32_ISO_HDLC};
 pub struct Chunk {
     chunkT: ChunkType, //4bytes bb bb bb bb
     data: Vec<u8>, //any bytes
+}
+
+fn u32_to_u8_array(x:u32) -> [u8;4] {
+    let b1 : u8 = ((x >> 24) & 0xff) as u8;
+    let b2 : u8 = ((x >> 16) & 0xff) as u8;
+    let b3 : u8 = ((x >> 8) & 0xff) as u8;
+    let b4 : u8 = (x & 0xff) as u8;
+    return [b1, b2, b3, b4]
 }
 
 impl Chunk {
@@ -63,8 +68,17 @@ impl Chunk {
 
         return Ok(s);
     }
-    fn as_bytes(&self) -> Vec<u8> {
-        let v:Vec<u8> = Vec::new();
+    pub fn as_bytes(&self) -> Vec<u8> {
+        let mut v:Vec<u8> = Vec::new();
+        let len : u32 = self.length();
+        v.extend_from_slice(&u32_to_u8_array(len));
+        let typeT : &ChunkType = &self.chunkT;
+        v.extend_from_slice(&typeT.bytes());
+        for i in 0..self.data.len() {
+            v.push(self.data[i]);
+        }
+        let crc : u32 = self.crc();
+        v.extend_from_slice(&u32_to_u8_array(crc));
         return v;
     }
 
