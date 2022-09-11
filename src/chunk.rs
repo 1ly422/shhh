@@ -1,12 +1,37 @@
-use std::{
-    fmt::Display, 
-    convert::TryFrom
-};
-
+use std::{fmt::Display, convert::TryFrom};
 use crate::Error;
-
 use super::chunk_type::ChunkType;
 use crc::{Crc, CRC_32_ISO_HDLC};
+
+/*
+
+From PNG Specs:
+http://www.libpng.org/pub/png/spec/1.2/PNG-Structure.html#CRC-algorithm
+
+Each chunk consists of four parts:
+
+--> Length: A 4-byte unsigned integer giving the number of bytes 
+in the chunk's data field.The length counts only the data field, 
+not itself, the chunk type code, or the CRC. Zero is a valid length.
+Although encoders and decoders should treat the length as unsigned, 
+its value must not exceed 231 bytes.
+
+--> Chunk Type: A 4-byte chunk type code. For convenience in description
+ and in examining PNG files, type codes are restricted to consist of
+  uppercase and lowercase ASCII letters (A-Z and a-z, or 65-90 and 
+97-122 decimal). 
+
+-->Chunk Data: The data bytes appropriate to the chunk type, 
+if any. This field can be of zero length.
+
+--> CRC A 4-byte CRC (Cyclic Redundancy Check) calculated on the 
+preceding bytes in the chunk, including the chunk type code and 
+chunk data fields, but not including the length field.
+The CRC is always present, even for chunks containing no data.
+
+Chunk CRCs are calculated using standard CRC methods with 
+pre and post conditioning, as defined by ISO 3309
+*/
 
 #[derive(Debug, PartialEq)]
 pub struct Chunk {
@@ -97,21 +122,43 @@ impl TryFrom<&[u8]> for Chunk {
     //          bb          bb          bb        bb
     //example   12          01          02        12
     //      00001100    00000001    00000010    00001100
-    fn try_from(value: &[u8]) -> Result<Self, Self::Error> {
-        let len = value.len();
-        /*
-        let length :u32 =
-            value[0] as u32
-        + ((value[1] as u32) << 8)
-        + ((value[2] as u32) << 16)
-        + ((value[3] as u32) << 24);
-        */
-        let chunk = ChunkType::try_from([value[4], value[5], value[6], value[7]]).unwrap();
+    fn try_from(bytes: &[u8]) -> Result<Self, Self::Error> {
+        let len = bytes.len();
+        
+        let chunk = ChunkType::try_from([bytes[4], bytes[5], bytes[6], bytes[7]]).unwrap();
         let mut data: Vec<u8> = Vec::new();
         for i in 8..len-4 {
-            data.push(value[i]);
+            data.push(bytes[i]);
         }
         let cc: Chunk = Chunk { chunkT: chunk, data: data };
+        
+        let length :u32 =
+            bytes[3] as u32
+        + ((bytes[2] as u32) << 8)
+        + ((bytes[1] as u32) << 16)
+        + ((bytes[0] as u32) << 24);
+        //println!("Size == {}" , length);
+        if (len - Chunk::METADATA_LENGHT != length as usize) {
+            //return Err("Error::Length bytes mismatch");
+        }
+        let crc :u32 =
+            bytes[len-1] as u32
+        + ((bytes[len-2] as u32) << 8)
+        + ((bytes[len-3] as u32) << 16)
+        + ((bytes[len-4] as u32) << 24);
+        /*let crc:u32 = u32::from_be_bytes([
+            bytes[len-4], 
+            bytes[len-3], 
+            bytes[len-2], 
+            bytes[len-1]
+        ]);
+        */
+        //println!("Crc == {}" , crc);
+        
+        if (cc.crc() != crc) {
+            return Err("Error::crc bytes mismatch");
+        }
+
         return Ok(cc);
     }
 }
