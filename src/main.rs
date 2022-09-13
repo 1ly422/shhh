@@ -620,32 +620,11 @@ pub fn chunk_from_strings(chunk_type: &str, data: &str) -> Result<Chunk> {
 
     Ok(Chunk::new(chunk_type, data))
 }
-/*
-pub fn read_header(filename: &String) -> Vec<u8> {
-    let mut header = vec![0u8; 8];
-    let mut file = std::fs::File::open(&filename)
-    .expect("No file Found");
 
-    file.read_exact(&mut header);
-    print_header(&header);
-    return header;
-}
-*/
-
-pub fn print_header(tab: &Vec<u8>) {
-    println!("Header {:?}", &tab);
-}
-/*
-pub fn check_if_vaid_png(filename: &String) -> bool {
-    let pngHeader: Vec<u8> = read_header(&filename); 
-    let validHeader: Vec<u8> = vec![137, 80, 78, 71, 13, 10, 26, 10]; 
-    return pngHeader == validHeader;
-}
-*/
 pub fn read_png_from_file(filename: &str) -> Png{
     let mut f = std::fs::File::open(filename).unwrap();
     let mut buffer:Vec<u8> = Vec::new();
-    f.read_to_end(&mut buffer);
+    f.read_to_end(&mut buffer).unwrap();
     let png = Png::try_from(buffer.as_ref());
     return png.unwrap();
 }
@@ -693,12 +672,13 @@ fn command_line() {
     }
 }
 
-fn main() /*-> Result<()>*/ {
-    
-//    let filename = "src/google.png";
-//    let mut png: Png = read_png_from_file(filename);
-    let mut png = Png::try_from(&PNG_FILE[..]).unwrap();
-    png.append_chunk(chunk_from_strings("TeSt", "Secret Message").unwrap());
+
+fn simple_png_program() {
+    let filename = "src/google.png";
+    let mut png: Png = read_png_from_file(filename);
+//    let mut png = Png::try_from(&PNG_FILE[..]).unwrap();
+    png.append_chunk(chunk_from_strings("TeSt", "There is a secret message hidden in here").unwrap());
+    //png.append_chunk(chunk_from_strings("IEND", "").unwrap());
     png.print();
 
     //Write to a new file
@@ -710,4 +690,56 @@ fn main() /*-> Result<()>*/ {
         let bytes_written = outFile.write(&data[pos..]).unwrap();
         pos += bytes_written;
     }
+}
+
+fn direct_prog() {
+    let args: Vec<String> = std::env::args().collect();
+    dbg!(&args);
+    if (args.len() <= 1) {
+        println!("Not enough arguments");
+        panic!();
+    }
+
+    let option :&str= &args[1];
+    match option {
+        "-h" => { println!("Use ./pngcodec -f <filename> -o <option>\nExample:\n./pngcodec -f dice.png -o add TeSt Secret Message");}
+        "-f" => {
+            let filename :&str= &args[2];
+            let option2 :&str= &args[3];
+            match option2 {
+                "-o" => {
+                    let option3: &str = &args[4];
+                    match option3 {
+                        "add" => {
+                            let chunkT :&str= &args[5];
+                            let msg :&str= &args[6];
+
+                            let mut png: Png = read_png_from_file(filename);
+                            png.append_chunk(chunk_from_strings(chunkT, msg).unwrap());
+
+                            let data = png.as_bytes();
+                            let mut pos = 0;
+                            let mut outFile = std::fs::File::create(filename).unwrap();
+                                while pos < data.len() {
+                                let bytes_written = outFile.write(&data[pos..]).unwrap();
+                                pos += bytes_written;
+                            }
+                        }
+                        "print" => {
+                            let png: Png = read_png_from_file(filename);
+                            png.print();
+                        }
+                        _ => {return;}
+                    }
+                }
+                _ => {return;}
+            }
+        }
+        _ => {return;}
+    }
+    //let file :&String= &args[2];
+
+}
+fn main() {
+    direct_prog();
 }
