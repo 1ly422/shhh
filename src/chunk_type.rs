@@ -1,35 +1,8 @@
-#![allow(unused_parens)]
-#![allow(non_snake_case)]
-#![allow(unused_variables)]
-#![allow(unused_must_use)]
-#![allow(dead_code)]
-
 use std::fmt::Display;
-use std::io::Read;
 use std::str::FromStr;
 use std::num::ParseIntError;
 use std::cmp::PartialEq;
 
-
-pub fn read_header(filename: &String) -> Vec<u8> {
-    let mut header = vec![0u8; 8];
-    let mut file = std::fs::File::open(&filename)
-    .expect("No file Found");
-
-    file.read_exact(&mut header);
-    print_header(&header);
-    return header;
-}
-
-pub fn print_header(tab: &Vec<u8>) {
-    println!("Header {:?}", &tab);
-}
-
-pub fn check_if_vaid_png(filename: &String) -> bool {
-    let pngHeader: Vec<u8> = read_header(&filename); 
-    let validHeader: Vec<u8> = vec![137, 80, 78, 71, 13, 10, 26, 10]; 
-    return pngHeader == validHeader;
-}
 #[derive(Eq, Debug)]
 pub struct ChunkType {
     pub chunk: [u8;4],
@@ -42,7 +15,7 @@ impl ChunkType {
 
     pub fn is_valid(&self) -> bool {
         for i in 0..4 {
-            if !((65 < self.chunk[i] && self.chunk[i] < 90) || (97 < self.chunk[i] && self.chunk[i] < 122)) {
+            if !((65 <= self.chunk[i] && self.chunk[i] <= 90) || (97 <= self.chunk[i] && self.chunk[i] <= 122)) {
                 return false;
             }
         } 

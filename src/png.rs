@@ -1,5 +1,5 @@
 use std::convert::TryFrom;
-use std::fmt::{Display, write};
+use std::fmt::Display;
 use crate::chunk::Chunk;
 use crate::chunk_type::ChunkType;
 use std::str::FromStr;
@@ -59,6 +59,13 @@ impl Png {
         }
         return tab;
     }
+
+    pub fn print(&self) {
+        println!("Header: {:?}", self.header);
+        for c in &self.bytes {
+            println!("{}", c);
+        }       
+    }
 }
 
 impl TryFrom<&[u8]> for Png {
@@ -114,6 +121,6 @@ impl TryFrom<&[u8]> for Png {
 
 impl Display for Png {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        return write!(f, "Header: {:?}\nData: {:?}", self.header, self.bytes);
+        return write!(f, "Header: {:?}\nData: {:?}\n", self.header, self.bytes);
     }
 }
