@@ -44,7 +44,7 @@ fn u32_to_u8_array(x:u32) -> [u8;4] {
     let b2 : u8 = ((x >> 16) & 0xff) as u8;
     let b3 : u8 = ((x >> 8) & 0xff) as u8;
     let b4 : u8 = (x & 0xff) as u8;
-    return [b1, b2, b3, b4]
+    return [b1, b2, b3, b4];
 }
 
 impl Chunk {
@@ -112,7 +112,7 @@ impl Chunk {
 impl Display for Chunk{
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         return write!(f, 
-            "Chunk::\nchunk_type: {}\ndata: {:?}\n", self.chunkT, self.data);
+            "Chunk::\nlenght: {}\nchunk_type: {} {:?}\ndata: {:?}\n",self.length(), self.chunkT, self.chunkT, self.data);
     }
 }
 
@@ -131,7 +131,6 @@ impl TryFrom<&[u8]> for Chunk {
             data.push(bytes[i]);
         }
         let cc: Chunk = Chunk { chunkT: chunk, data: data };
-        
         let length :u32 =
             bytes[3] as u32
         + ((bytes[2] as u32) << 8)

@@ -106,9 +106,10 @@ impl TryFrom<[u8;4]> for ChunkType {
     
     fn try_from(value: [u8;4]) -> Result<Self, Self::Error> {
         for i in 0..4 {
-            if !((65 < value[i] && value[i] < 90) 
-            ||(97 < value[i] && value[i] < 122)) {
-                return Err("Value not ACSII");
+            if !((65 <= value[i] && value[i] <= 90) 
+            ||(97 <= value[i] && value[i] <= 122)) {
+                println!("Error Value = {}", value[i]);
+                return Err("Error::ChunkType::Value not ACSII");
             }
         }
         return Ok(ChunkType { chunk: value });
@@ -135,13 +136,7 @@ impl PartialEq for ChunkType {
         return true;
     }
 }
-/*
-impl Eq for ChunkType {
-    fn assert_receiver_is_total_eq(&self) {
-        assert_eq!()
-    }
-}
-*/
+
 impl Display for ChunkType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let text = std::str::from_utf8(&self.chunk).unwrap();
