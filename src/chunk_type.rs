@@ -9,6 +9,8 @@ pub struct ChunkType {
 }
 
 impl ChunkType {
+    pub const CHUNK_TYPE_LENGHT:usize = 4;
+
     pub fn bytes(&self) -> [u8; 4] {
         return self.chunk;
     }
@@ -93,6 +95,7 @@ impl FromStr for ChunkType {
     type Err = ParseIntError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
+        assert!(s.len() == ChunkType::CHUNK_TYPE_LENGHT);
         let mut value: [u8;4] = [0,0,0,0];
         s.bytes().zip(value.iter_mut()).for_each(|(b,ptr)| *ptr = b);
         return Ok(ChunkType {chunk: value});
